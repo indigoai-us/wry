@@ -6,6 +6,8 @@
 use std::{cell::RefCell, ptr::null_mut, rc::Rc};
 
 use block2::Block;
+#[cfg(target_os = "macos")]
+use objc2::ClassType;
 use objc2::{
   DefinedClass, MainThreadOnly, define_class, msg_send, rc::Retained, runtime::NSObject,
 };
@@ -106,20 +108,53 @@ define_class!(
       handler: &block2::Block<dyn Fn(*const NSArray<NSURL>)>,
     ) {
       unsafe {
-        if let Some(mtm) = MainThreadMarker::new() {
-          let open_panel = NSOpenPanel::openPanel(mtm);
-          open_panel.setCanChooseFiles(true);
-          let allow_multi = open_panel_params.allowsMultipleSelection();
-          open_panel.setAllowsMultipleSelection(allow_multi);
-          let allow_dir = open_panel_params.allowsDirectories();
-          open_panel.setCanChooseDirectories(allow_dir);
-          let ok: NSModalResponse = open_panel.runModal();
-          if ok == NSModalResponseOK {
-            let url = open_panel.URLs();
-            (*handler).call((Retained::as_ptr(&url),));
-          } else {
-            (*handler).call((null_mut(),));
-          }
+        let Some(mtm) = MainThreadMarker::new() else {
+          #[cfg(feature = "tracing")]
+          tracing::error!(
+            panel_kind = "webview_file_upload",
+            on_main_thread = false,
+            "WebKit file upload panel requested off the main thread"
+          );
+          (*handler).call((null_mut(),));
+          return;
+        };
+
+        let open_panel = crate::util::create_panel_or_cancel(
+          || {
+            // AppKit declares this factory non-null, but the Objective-C
+            // implementation can still return nil. Send the selector as a
+            // raw pointer so the nullable result can be handled here.
+            let panel: *mut NSOpenPanel = unsafe { msg_send![NSOpenPanel::class(), openPanel] };
+            // SAFETY: The factory returns an autoreleased panel when present.
+            unsafe { Retained::retain(panel) }
+          },
+          || {
+            #[cfg(feature = "tracing")]
+            tracing::error!(
+              panel_kind = "webview_file_upload",
+              on_main_thread = true,
+              "AppKit returned nil while creating the WebKit file upload panel"
+            );
+            unsafe {
+              (*handler).call((null_mut(),));
+            }
+          },
+        );
+        let Some(open_panel) = open_panel else {
+          return;
+        };
+
+        open_panel.setCanChooseFiles(true);
+        let allow_multi = open_panel_params.allowsMultipleSelection();
+        open_panel.setAllowsMultipleSelection(allow_multi);
+        let allow_dir = open_panel_params.allowsDirectories();
+        open_panel.setCanChooseDirectories(allow_dir);
+        let ok: NSModalResponse = open_panel.runModal();
+        if ok == NSModalResponseOK {
+          let url = open_panel.URLs();
+          (*handler).call((Retained::as_ptr(&url),));
+        } else {
+          (*handler).call((null_mut(),));
         }
       }
     }
