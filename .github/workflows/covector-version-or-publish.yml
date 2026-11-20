@@ -21,7 +21,7 @@ jobs:
       successfulPublish: ${{ steps.covector.outputs.successfulPublish }}
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:
           fetch-depth: 0 # required for use of git history
 
@@ -34,7 +34,7 @@ jobs:
           git config --global user.email "${{ github.event.pusher.email }}"
 
       - name: covector version or publish (publish when no change files present)
-        uses: jbolda/covector/packages/action@covector-v0
+        uses: jbolda/covector/packages/action@af8d85bc327db1bb4720bfdaa7cd2c4d3f1b244d # covector-v0
         id: covector
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

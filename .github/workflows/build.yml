@@ -31,9 +31,9 @@ jobs:
     runs-on: ${{ matrix.platform.os }}
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
       - name: install stable
-        uses: dtolnay/rust-toolchain@1.85
+        uses: dtolnay/rust-toolchain@33280e014b87ec2afd73c872fdd38a9ebebf4df9 # 1.85
         with:
           targets: ${{ matrix.platform.target }}
 
@@ -50,7 +50,7 @@ jobs:
           Invoke-WebRequest https://go.microsoft.com/fwlink/p/?LinkId=2124703 -OutFile installwebview.exe -UseBasicParsing
           cmd /C start /wait installwebview.exe /silent /install
 
-      - uses: Swatinem/rust-cache@v2
+      - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2.9.3
         with:
           save-if: ${{ matrix.features.key == 'all' }}
 
@@ -67,7 +67,7 @@ jobs:
         run: cargo test --verbose --target ${{ matrix.platform.target }} --features linux-body ${{ matrix.features.args }}
 
       - name: install nightly
-        uses: dtolnay/rust-toolchain@nightly
+        uses: dtolnay/rust-toolchain@6a52aad76a94a5fbc50d567bb5be24419801c1fb # nightly
         with:
           targets: ${{ matrix.platform.target }}
           components: miri
@@ -79,9 +79,9 @@ jobs:
   doc:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
       - name: install nightly
-        uses: dtolnay/rust-toolchain@nightly
+        uses: dtolnay/rust-toolchain@6a52aad76a94a5fbc50d567bb5be24419801c1fb # nightly
       - name: install webkit2gtk
         run: |
           sudo apt-get update -y -q
