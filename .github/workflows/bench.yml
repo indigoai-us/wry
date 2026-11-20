@@ -36,10 +36,10 @@ jobs:
     runs-on: ${{ matrix.platform.os }}
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
 
       - name: install Rust ${{ matrix.rust }}
-        uses: dtolnay/rust-toolchain@master
+        uses: dtolnay/rust-toolchain@df2a88e9fe4098bad09cb42c3dec7187f15861fc # master
         with:
           toolchain: ${{ matrix.rust }}
           components: rust-src
@@ -55,7 +55,7 @@ jobs:
             at-spi2-core
 
       - name: Setup python
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
         with:
           python-version: '3.13'
 
@@ -65,12 +65,12 @@ jobs:
           pip install memory_profiler
 
       - name: Install cargo-binstall
-        uses: cargo-bins/cargo-binstall@v1.19.1
+        uses: cargo-bins/cargo-binstall@aaa84a43aec4955a42c5ffc65d258961e39f276e # v1.19.1
 
       - name: Install hyperfine
         run: cargo binstall hyperfine@1.20 --no-confirm
 
-      - uses: Swatinem/rust-cache@v2
+      - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2.9.3
         with:
           workspaces: |
             .
@@ -86,7 +86,7 @@ jobs:
 
       - name: clone benchmarks_results
         if: github.repository == 'tauri-apps/wry' && github.ref == 'refs/heads/dev'
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:
           token: ${{ secrets.ORG_TAURI_BOT_PAT }}
           path: gh-pages
